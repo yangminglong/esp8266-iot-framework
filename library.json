@@ -7,12 +7,12 @@
     "platforms": "espressif8266",
     "repository": {
         "type": "git",
-        "url": "https://github.com/maakbaas/esp8266-iot-framework.git"
+        "url": "https://github.com/yangminglong/esp8266-iot-framework.git"
     },
     "dependencies":
     [
         {
-            "name": "https://github.com/lorol/ESPAsyncWebServer"
+            "name": "https://github.com/yangminglong/ESPAsyncWebServer"
         },
         {
             "name": "ArduinoJson"
@@ -28,9 +28,6 @@
         },
         {
             "name": "EEPROM"
-        },
-        {
-            "name": "LittleFS(esp8266)"
         }
     ],
     "build": {
