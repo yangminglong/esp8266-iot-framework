@@ -1,15 +1,20 @@
 #include "updater.h"
 
-#include "LittleFS.h"
+#include "FS.h"
 
-void LittleFSUpdater::requestStart(String filenameIn)
+void FSUpdater::requestStart(String filenameIn)
 {
     status = 254;
     filename = filenameIn;
     requestFlag = true;
 }
 
-void LittleFSUpdater::loop()
+void FSUpdater::begin(FS* fs)
+{
+    _fs = fs;
+}
+
+void FSUpdater::loop()
 {
     if (requestFlag==true)
     {
@@ -18,15 +23,18 @@ void LittleFSUpdater::loop()
     }
 }
 
-uint8_t LittleFSUpdater::getStatus()
+uint8_t FSUpdater::getStatus()
 {
     return status;
 }
 
-void LittleFSUpdater::flash(String filename)
-{    
+void FSUpdater::flash(String filename)
+{   
+    if (_fs == nullptr)
+        return;
+
     bool answer = 0;
-    File file = LittleFS.open(filename, "r");
+    File file = _fs->open(filename, "r");
 
     if (!file)
     {
@@ -65,4 +73,4 @@ void LittleFSUpdater::flash(String filename)
     status = answer;
 }
 
-LittleFSUpdater updater;
+FSUpdater updater;

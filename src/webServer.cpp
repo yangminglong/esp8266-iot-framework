@@ -1,6 +1,5 @@
 #include "webServer.h"
 #include "ArduinoJson.h"
-#include "LittleFS.h"
 
 // Include the header file we create with webpack
 #include "generated/html.h"
@@ -10,16 +9,20 @@
 #include "configManager.h"
 #include "updater.h"
 #include "dashboard.h"
+#include "FS.h"
 
-void webServer::begin()
+FS* webServer::_fs = nullptr;
+
+void webServer::begin(FS* fs)
 {
+    _fs = fs;
     //to enable testing and debugging of the interface
     DefaultHeaders::Instance().addHeader(PSTR("Access-Control-Allow-Origin"), PSTR("*"));
 
     server.addHandler(&ws);
     server.begin();
 
-    server.serveStatic("/download", LittleFS, "/");
+    server.serveStatic("/download", *_fs, "/");
 
     server.onNotFound(requestHandler);
 
@@ -68,19 +71,19 @@ void webServer::bindAll()
     });
 
     //get file listing
-    server.on(PSTR("/api/files/get"), HTTP_GET, [](AsyncWebServerRequest *request) {
+    server.on(PSTR("/api/files/get"), HTTP_GET, [_fs](AsyncWebServerRequest *request) {
         String JSON;
         StaticJsonDocument<1000> jsonBuffer;
         JsonArray files = jsonBuffer.createNestedArray("files");
 
         //get file listing
-        Dir dir = LittleFS.openDir("");
+        Dir dir = _fs->openDir("");
         while (dir.next())
             files.add(dir.fileName());
 
-        //get used and total data
+        //get used and total data 
         FSInfo fs_info;
-        LittleFS.info(fs_info);
+        _fs->info(fs_info);
         jsonBuffer["used"] = String(fs_info.usedBytes);
         jsonBuffer["max"] = String(fs_info.totalBytes);
 
@@ -90,8 +93,8 @@ void webServer::bindAll()
     });
 
     //remove file
-    server.on(PSTR("/api/files/remove"), HTTP_POST, [](AsyncWebServerRequest *request) {
-        LittleFS.remove("/" + request->arg("filename"));
+    server.on(PSTR("/api/files/remove"), HTTP_POST, [_fs](AsyncWebServerRequest *request) {
+        _fs->remove("/" + request->arg("filename"));
         request->send(200, PSTR("text/html"), "");
     });
 
@@ -179,7 +182,7 @@ void webServer::handleFileUpload(AsyncWebServerRequest *request, String filename
         if (!filename.startsWith("/"))
             filename = "/" + filename;
 
-        fsUploadFile = LittleFS.open(filename, "w");
+        fsUploadFile = _fs->open(filename, "w");
     }
 
     for (size_t i = 0; i < len; i++)
