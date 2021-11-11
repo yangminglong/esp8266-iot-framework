@@ -176,7 +176,9 @@ void webServer::serveProgmem(AsyncWebServerRequest *request)
 void webServer::handleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
 {
     static File fsUploadFile;
-
+    static unsigned long ts;
+    static unsigned long fsize;
+    
     if (!index)
     {
         Serial.print(PSTR("Start file upload:"));
@@ -185,24 +187,32 @@ void webServer::handleFileUpload(AsyncWebServerRequest *request, String filename
         if (!filename.startsWith("/"))
             filename = "/" + filename;
 
-        fsUploadFile = _fs->open(filename, "w");
+        ts = millis();
+        fsize = 0;
+        // fsUploadFile = _fs->open(filename, "w");
     }
 
-    fsUploadFile.write(data, len);
-
+    // fsUploadFile.write(data, len);
+    fsize += len;
     if (final)
     {
+        Serial.print(PSTR("file uploaded:"));
+        Serial.println(filename);
+
+        float usedTime =  (millis()-ts)/1000.0;
+        float speed = fsize/1024.0 / usedTime;
+        Serial.printf(PSTR("time:%.1fs, speed:%.1fkb/s.\n"), usedTime, speed);  
+        
         String JSON;
         StaticJsonDocument<100> jsonBuffer;
 
-        jsonBuffer["success"] = fsUploadFile.isFile();
+        // jsonBuffer["success"] = fsUploadFile.isFile();
+        jsonBuffer["success"] = true;
         serializeJson(jsonBuffer, JSON);
 
         request->send(200, PSTR("text/html"), JSON);
-        fsUploadFile.close();   
+        // fsUploadFile.close();   
 
-        Serial.print(PSTR("file uploaded:"));
-        Serial.println(filename);     
     }
 
 }
