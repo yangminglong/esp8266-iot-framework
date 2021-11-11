@@ -103,7 +103,7 @@ export function FileListing(props) {
                         <FileLine className={props.selectable ? "selectable" : ""} onClick={() => {if (typeof props.onSelect !== "undefined") {props.onSelect(name);}}}>
                             <div><File /><span>{state.files[i]}</span></div>
                             <div>
-                                <a href={`${props.API}/download/${state.files[i]}`} rel="noreferrer" target="_blank" onClick={(e) => { e.stopPropagation();}}>
+                                <a href={`${props.API}/api/download/${state.files[i]}`} rel="noreferrer" target="_blank" onClick={(e) => { e.stopPropagation();}}>
                                     <Button title={loc.filesDl}><Download /></Button>
                                 </a>                
                                 <Fetch href={`${props.API}/api/files/remove?filename=${state.files[i]}`} POST onFinished={fetchData}>
@@ -127,7 +127,7 @@ export function FileListing(props) {
     }
 
     return <><Flex>
-        <div><Upload action={`${props.API}/upload`} onFinished={fetchData} filter={props.filter} /></div>
+        <div><Upload action={`${props.API}/api/upload`} onFinished={fetchData} filter={props.filter} /></div>
         {parseInt(state.max) > 0 ? <div>{Math.round(state.used / 1000)} / {Math.round(state.max / 1000)} kB {loc.filesUsed}</div> : ""}
     </Flex><h3>{header}</h3>{list}</>;
     

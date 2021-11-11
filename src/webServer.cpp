@@ -22,12 +22,12 @@ void webServer::begin(FS* fs)
     server.addHandler(&ws);
     server.begin();
 
-    server.serveStatic("/download", *_fs, "/");
+    server.serveStatic("/api/download", *_fs, "/");
 
     server.onNotFound(requestHandler);
 
     //handle uploads
-    server.on(PSTR("/upload"), HTTP_POST, [](AsyncWebServerRequest *request) {}, handleFileUpload);
+    server.on(PSTR("/api/upload"), HTTP_POST, [](AsyncWebServerRequest *request) {}, handleFileUpload);
 
     bindAll();
 }
@@ -161,6 +161,9 @@ void webServer::bindAll()
 // Callback for the html
 void webServer::serveProgmem(AsyncWebServerRequest *request)
 {    
+    Serial.print(PSTR("url not found:"));
+    Serial.println(request->url());
+    Serial.println(PSTR("enter control panel."));
     // Dump the byte array in PROGMEM with a 200 HTTP code (OK)
     AsyncWebServerResponse *response = request->beginResponse_P(200, PSTR("text/html"), html, html_len);
 
@@ -176,7 +179,7 @@ void webServer::handleFileUpload(AsyncWebServerRequest *request, String filename
 
     if (!index)
     {
-        Serial.println(PSTR("Start file upload"));
+        Serial.print(PSTR("Start file upload:"));
         Serial.println(filename);
 
         if (!filename.startsWith("/"))
@@ -185,10 +188,7 @@ void webServer::handleFileUpload(AsyncWebServerRequest *request, String filename
         fsUploadFile = _fs->open(filename, "w");
     }
 
-    for (size_t i = 0; i < len; i++)
-    {
-        fsUploadFile.write(data[i]);
-    }
+    fsUploadFile.write(data, len);
 
     if (final)
     {
@@ -199,8 +199,12 @@ void webServer::handleFileUpload(AsyncWebServerRequest *request, String filename
         serializeJson(jsonBuffer, JSON);
 
         request->send(200, PSTR("text/html"), JSON);
-        fsUploadFile.close();        
+        fsUploadFile.close();   
+
+        Serial.print(PSTR("file uploaded:"));
+        Serial.println(filename);     
     }
+
 }
 
 webServer GUI;
