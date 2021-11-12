@@ -16,6 +16,7 @@ void WifiManager::begin(char const *apName, unsigned long newTimeout)
     captivePortalName = apName;
     timeout = newTimeout;
 
+    WiFi.setPhyMode(WIFI_PHY_MODE_11N); // B:11Mbps   G: 54Mbps   N:150Mbps
     WiFi.mode(WIFI_STA);
 
     //set static IP if entered
